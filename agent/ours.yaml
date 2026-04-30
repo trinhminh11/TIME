@@ -1,0 +1,37 @@
+# @package agent
+_target_: agent.ours.OursAgent
+name: ours
+reward_free: ${reward_free}
+obs_type: ??? # to be specified later
+obs_shape: ??? # to be specified later
+action_shape: ??? # to be specified later
+device: ${device}
+lr: 1e-4
+critic_target_tau: 0.01
+update_every_steps: 2
+use_tb: ${use_tb}
+use_wandb: ${use_wandb}
+num_expl_steps: ??? # to be specified later
+hidden_dim: 1024
+feature_dim: 50
+stddev_schedule: 0.2
+stddev_clip: 0.3
+nstep: 3
+batch_size: 1024
+init_critic: true
+update_encoder: ${update_encoder}
+
+# skill reward
+skill_dim: 16
+traj_len: 8
+intr_reward_scale: 1.0
+state_log_coef: 0.5
+state_mean_coef: 0.5
+prior_coef: 0.5
+
+# discriminators
+disc_lr: 1e-4
+transformer_embed_dim: 128
+transformer_d_ff: 512
+transformer_heads: 4
+transformer_layers: 2
