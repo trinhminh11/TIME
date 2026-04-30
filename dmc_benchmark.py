@@ -1,10 +1,11 @@
 DOMAINS = [
     'walker',
     'hopper',
+    'cheetah',
     'quadruped',
     'humanoid',
     'jaco',
-    'antmaze',
+    'ant',
 ]
 
 HOPPER_TASKS = [
@@ -17,6 +18,10 @@ WALKER_TASKS = [
     'walker_walk',
     'walker_run',
     'walker_flip',
+]
+
+CHEETAH_TASKS = [
+    'cheetah_run',
 ]
 
 QUADRUPED_TASKS = [
@@ -44,11 +49,12 @@ HUMANOID_TASKS = [
     'humanoid-run_pure_state-v0',
 ]
 
-TASKS = WALKER_TASKS + HOPPER_TASKS + QUADRUPED_TASKS + JACO_TASKS + ANT_TASKS + HUMANOID_TASKS
+TASKS = WALKER_TASKS + HOPPER_TASKS + CHEETAH_TASKS + QUADRUPED_TASKS + JACO_TASKS + ANT_TASKS + HUMANOID_TASKS
 
 PRIMAL_TASKS = {
     'walker': 'walker_stand',
     'hopper': 'hopper_hop',
+    'cheetah': 'cheetah_run',
     'jaco': 'jaco_reach_top_left',
     'quadruped': 'quadruped_walk',
     'ant': 'ant_temp',
