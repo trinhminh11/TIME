@@ -389,7 +389,7 @@ def _make_ant(obs_type, action_repeat, seed):
                           'Install it with: uv add gymnasium-robotics') from err
 
 
-    env = gym.make('Ant-v5', render_mode='rgb_array')
+    env = gym.make('Ant-v5', render_mode='rgb_array', terminate_when_unhealthy=False)
     env = GymnasiumWrapper(env, seed=seed)
     env = ActionDTypeWrapper(env, np.float32)
     env = ActionRepeatWrapper(env, action_repeat)
