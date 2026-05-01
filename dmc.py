@@ -395,6 +395,33 @@ def _make_ant(obs_type, action_repeat, seed):
     env = ActionRepeatWrapper(env, action_repeat)
     return env
 
+def _make_antmaze(obs_type, task, action_repeat, seed):
+    if obs_type != 'states':
+        raise ValueError('AntMaze currently supports only obs_type=states')
+
+    try:
+        import gymnasium_robotics  # noqa: F401
+    except ImportError as err:
+        raise ImportError('gymnasium-robotics is required for AntMaze. '
+                          'Install it with: uv add gymnasium-robotics') from err
+
+    gym_env_id_map = {
+        'umaze': 'AntMaze_UMaze-v5',
+        'umaze_dense': 'AntMaze_UMazeDense-v5',
+        'medium_play': 'AntMaze_Medium_Play-v5',
+        'medium_diverse': 'AntMaze_Medium_Diverse-v5',
+        'large_play': 'AntMaze_Large_Play-v5',
+        'large_diverse': 'AntMaze_Large_Diverse-v5',
+    }
+    if task not in gym_env_id_map:
+        raise ValueError(f'Unknown AntMaze task: {task}')
+
+    env = gym.make(gym_env_id_map[task], render_mode='rgb_array')
+    env = GymnasiumWrapper(env, seed=seed)
+    env = ActionDTypeWrapper(env, np.float32)
+    env = ActionRepeatWrapper(env, action_repeat)
+    return env
+
 
 def make(name, obs_type, frame_stack, action_repeat, seed):
     assert obs_type in ['states', 'pixels']
@@ -406,6 +433,8 @@ def make(name, obs_type, frame_stack, action_repeat, seed):
                          seed)
     elif domain == 'ant':
         env = _make_ant(obs_type, action_repeat, seed)
+    elif domain == 'antmaze':
+        env = _make_antmaze(obs_type, task, action_repeat, seed)
     else:
         env = _make_dmc(obs_type, domain, task, frame_stack, action_repeat,
                         seed)
@@ -419,3 +448,4 @@ def make(name, obs_type, frame_stack, action_repeat, seed):
     env = ActionDTypeWrapper(env, np.float32)
     env = ExtendedTimeStepWrapper(env)
     return env
+
