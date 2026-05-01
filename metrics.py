@@ -14,7 +14,7 @@ class MetricsDict(TypedDict):
 
 class Metrics:
     def __init__(self):
-        self.metrics: dict[str, MetricsDict] = defaultdict(MetricsDict)
+        self.metrics: dict[str, MetricsDict] = defaultdict(lambda: {"ant_location_metrics": {}, "returns": []})
 
     def save_metrics(self, file: str = "metrics.pkl"):
         with open(file, "wb") as f:
@@ -26,12 +26,11 @@ class Metrics:
 
     def save_ant_location(self, algoname: str, skill: Any, x: float, y: float):
         if skill not in self.metrics[algoname]["ant_location_metrics"]:
-            self.metrics[algoname]["ant_location_metrics"] = {}
             self.metrics[algoname]["ant_location_metrics"][skill] = []
         self.metrics[algoname]["ant_location_metrics"][skill].append((x, y))
 
     def plot_ant_explore_metrics(
-        self, algoname: str, file: str = None, custom_title: str = None
+        self, algoname: str, file: str = None, custom_title: str = None, legend: bool = False
     ):
         if "ant_location_metrics" not in self.metrics[algoname]:
             print(f"No ant location metrics found for {algoname}")
@@ -39,18 +38,20 @@ class Metrics:
 
         plt.figure(figsize=(8, 8))
 
-        # n_skills = len(self.metrics[algoname]["ant_location_metrics"])
+        n_skills = len(self.metrics[algoname]["ant_location_metrics"])  # n_colors = n_skills
+        colors = plt.cm.get_cmap("tab20", max(n_skills, 1))
 
         for i, (skill, locations) in enumerate(
             self.metrics[algoname]["ant_location_metrics"].items()
         ):
             x, y = zip(*locations)
-            plt.plot(x, y, label=f"skill {i}-th")
+            plt.plot(x, y, label=f"skill {i}-th", color=colors(i))
 
         plt.title(custom_title or f"{algoname} Ant Explore Metrics")
         # plt.xlabel('x')
         # plt.ylabel('y')
-        plt.legend()
+        if legend:
+            plt.legend()
         if file:
             plt.savefig(file)
         plt.show()
