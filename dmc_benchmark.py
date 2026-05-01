@@ -42,6 +42,14 @@ ANT_TASKS = [
     'ant_temp',
 ]
 
+ANTMAZE_TASKS = [
+    'antmaze_umaze',
+    'antmaze_medium_play',
+    'antmaze_medium_diverse',
+    'antmaze_large_play',
+    'antmaze_large_diverse',
+]
+
 HUMANOID_TASKS = [
     'humanoid_stand',
     'humanoid_walk',
@@ -49,7 +57,7 @@ HUMANOID_TASKS = [
     'humanoid-run_pure_state-v0',
 ]
 
-TASKS = WALKER_TASKS + HOPPER_TASKS + CHEETAH_TASKS + QUADRUPED_TASKS + JACO_TASKS + ANT_TASKS + HUMANOID_TASKS
+TASKS = WALKER_TASKS + HOPPER_TASKS + CHEETAH_TASKS + QUADRUPED_TASKS + JACO_TASKS + ANT_TASKS + ANTMAZE_TASKS + HUMANOID_TASKS
 
 PRIMAL_TASKS = {
     'walker': 'walker_stand',
@@ -58,5 +66,6 @@ PRIMAL_TASKS = {
     'jaco': 'jaco_reach_top_left',
     'quadruped': 'quadruped_walk',
     'ant': 'ant_temp',
+    'antmaze': 'antmaze_medium_play',
     'humanoid': 'humanoid_walk',
 }
