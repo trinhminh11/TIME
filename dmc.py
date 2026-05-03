@@ -431,7 +431,7 @@ def _make_dmc(obs_type, domain, task, frame_stack, action_repeat, seed):
     return env
 
 
-def _make_ant(obs_type, action_repeat, seed):
+def _make_ant(obs_type, action_repeat, seed, render_mode):
     if obs_type != 'states':
         raise ValueError('Ant currently supports only obs_type=states')
 
@@ -442,13 +442,14 @@ def _make_ant(obs_type, action_repeat, seed):
                           'Install it with: uv add gymnasium-robotics') from err
 
 
-    env = gym.make('Ant-v5', render_mode='rgb_array', terminate_when_unhealthy=False)
+    env = gym.make('Ant-v5', render_mode=render_mode, terminate_when_unhealthy=False)
+    print(env.observation_space)
     env = GymnasiumWrapper(env, seed=seed)
     env = ActionDTypeWrapper(env, np.float32)
     env = ActionRepeatWrapper(env, action_repeat)
     return env
 
-def _make_antmaze(obs_type, task, action_repeat, seed):
+def _make_antmaze(obs_type, task, action_repeat, seed, render_mode):
     if obs_type != 'states':
         raise ValueError('AntMaze currently supports only obs_type=states')
 
@@ -459,24 +460,23 @@ def _make_antmaze(obs_type, task, action_repeat, seed):
                           'Install it with: uv add gymnasium-robotics') from err
 
     gym_env_id_map = {
-        'umaze': 'AntMaze_UMaze-v5',
-        'umaze_dense': 'AntMaze_UMazeDense-v5',
-        'medium_play': 'AntMaze_Medium_Play-v5',
-        'medium_diverse': 'AntMaze_Medium_Diverse-v5',
-        'large_play': 'AntMaze_Large_Play-v5',
-        'large_diverse': 'AntMaze_Large_Diverse-v5',
+        'umaze': 'AntMaze_UMaze',
+        'medium': 'AntMaze_Medium',
+        'medium_diverse': 'AntMaze_Medium_Diverse_G',
+        'large': 'AntMaze_Large',
+        'large_diverse': 'AntMaze_Large_Diverse_G',
     }
     if task not in gym_env_id_map:
         raise ValueError(f'Unknown AntMaze task: {task}')
 
-    env = gym.make(gym_env_id_map[task], render_mode='rgb_array')
+    env = gym.make(gym_env_id_map[task], render_mode=render_mode)
     env = GymnasiumWrapper(env, seed=seed)
     env = ActionDTypeWrapper(env, np.float32)
     env = ActionRepeatWrapper(env, action_repeat)
     return env
 
 
-def make(name, obs_type, frame_stack, action_repeat, seed):
+def make(name, obs_type, frame_stack, action_repeat, seed, render_mode  = 'rgb_array'):
     assert obs_type in ['states', 'pixels']
     domain, task = name.split('_', 1)
     domain = dict(cup='ball_in_cup').get(domain, domain)
@@ -485,9 +485,9 @@ def make(name, obs_type, frame_stack, action_repeat, seed):
         env = _make_jaco(obs_type, domain, task, frame_stack, action_repeat,
                          seed)
     elif domain == 'ant':
-        env = _make_ant(obs_type, action_repeat, seed)
+        env = _make_ant(obs_type, action_repeat, seed, render_mode)
     elif domain == 'antmaze':
-        env = _make_antmaze(obs_type, task, action_repeat, seed)
+        env = _make_antmaze(obs_type, task, action_repeat, seed, render_mode)
     else:
         env = _make_dmc(obs_type, domain, task, frame_stack, action_repeat,
                         seed)

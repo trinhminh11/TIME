@@ -2,6 +2,7 @@ defaults:
   - agent: diayn
   - override hydra/launcher: submitit_local
 
+hrl: true # always true, just for clarity
 # task settings
 reward_free: false  # doesnt matter
 domain: cheetah # primal task will be inferred in runtime
@@ -9,6 +10,7 @@ obs_type: states # [states, pixels]
 frame_stack: 3 # only works if obs_type=pixels
 action_repeat: 1 # set to 2 for pixels
 discount: 0.99
+t_steps: 16 # number of steps the low-level controller will control for before the high-level controller chooses a new skill
 
 # train settings
 num_train_frames: 2000000

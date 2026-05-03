@@ -18,7 +18,7 @@ import utils
 from dmc_benchmark import PRIMAL_TASKS
 from hrl_agent.ppo import PPOConfig, PPOTrainer
 from logger import Logger
-from sd_env import DiscreteSkillDiscoveryEnvWrapper
+from sd_env import AntMazeFromAntPretrainedEnvWrapper, DiscreteSkillDiscoveryEnvWrapper
 from video import VideoRecorder
 
 torch.backends.cudnn.benchmark = True
@@ -53,8 +53,13 @@ class Workspace:
         self.task = PRIMAL_TASKS[self.cfg.domain]
 
         # The low-level controller is instantiated from the original task env specs.
-        base_env = dmc.make(self.task, cfg.obs_type, cfg.frame_stack,
+        if cfg.domain == 'antmaze':
+            base_env = dmc.make(PRIMAL_TASKS['ant'], cfg.obs_type, cfg.frame_stack,
                             cfg.action_repeat, cfg.seed)
+        else:
+            base_env = dmc.make(self.task, cfg.obs_type, cfg.frame_stack,
+                            cfg.action_repeat, cfg.seed)
+
         self.low_level_agent = make_agent(
             cfg.obs_type,
             base_env.observation_spec(),
@@ -71,7 +76,9 @@ class Workspace:
         def make_hrl_env(seed):
             env = dmc.make(self.task, cfg.obs_type, cfg.frame_stack,
                            cfg.action_repeat, seed)
-            return DiscreteSkillDiscoveryEnvWrapper(env, self.low_level_agent)
+            if cfg.domain == 'antmaze':
+                return AntMazeFromAntPretrainedEnvWrapper(env, self.low_level_agent, cfg.t_steps)
+            return DiscreteSkillDiscoveryEnvWrapper(env, self.low_level_agent, cfg.t_steps)
 
         self.eval_env = make_hrl_env(cfg.seed)
         env_fns = [
@@ -206,7 +213,8 @@ class Workspace:
 
     def load_low_level_snapshot(self):
         snapshot_base_dir = Path(self.cfg.snapshot_base_dir)
-        snapshot_dir = (snapshot_base_dir / self.cfg.obs_type / self.cfg.domain /
+        domain = self.cfg.domain if self.cfg.domain != 'antmaze' else 'ant'
+        snapshot_dir = (snapshot_base_dir / self.cfg.obs_type / domain /
                         self.cfg.agent.name)
 
         def try_load(seed):

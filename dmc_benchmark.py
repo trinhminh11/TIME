@@ -44,9 +44,9 @@ ANT_TASKS = [
 
 ANTMAZE_TASKS = [
     'antmaze_umaze',
-    'antmaze_medium_play',
+    'antmaze_medium',
     'antmaze_medium_diverse',
-    'antmaze_large_play',
+    'antmaze_large',
     'antmaze_large_diverse',
 ]
 
@@ -66,6 +66,6 @@ PRIMAL_TASKS = {
     'jaco': 'jaco_reach_top_left',
     'quadruped': 'quadruped_walk',
     'ant': 'ant_temp',
-    'antmaze': 'antmaze_medium_play',
+    'antmaze': 'antmaze_medium_diverse',
     'humanoid': 'humanoid_walk',
 }
