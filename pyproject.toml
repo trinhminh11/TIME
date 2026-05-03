@@ -28,6 +28,7 @@ dependencies = [
     "tqdm>=4.67.3",
     "wandb>=0.25.1",
     "seaborn>=0.13.2",
+    "scikit-learn>=1.8.0",
 ]
 
 [[tool.uv.index]]
