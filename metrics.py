@@ -4,6 +4,7 @@ from collections.abc import Callable
 from typing import Any, TypedDict
 
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
 import numpy as np
 from scipy.stats import gaussian_kde
 
@@ -84,7 +85,7 @@ class Metrics:
         self.metrics[algoname]["x_y_location_metrics"][env_name][skill].append((x, y))
 
     def plot_x_y_explore_metrics(
-        self, algoname: str, env_name: str, cmap_name = 'hsv', file: str = None, custom_title: str = None, legend: bool = False, x_lim = (-10, 10), y_lim = (-10, 10)
+        self, algoname: str, env_name: str, cmap_name = 'hsv', file: str = None, custom_title: str = None, legend: bool = False, x_lim = (-10, 10), y_lim = (-10, 10), ax: Axes = None
     ):
         if "x_y_location_metrics" not in self.metrics[algoname]:
             print(f"No x_y location metrics found for {algoname}")
@@ -94,7 +95,8 @@ class Metrics:
             print(f"No x_y location metrics found for {algoname} in environment {env_name}")
             return
 
-        plt.figure(figsize=(8, 8))
+        if ax is None:
+            plt.figure(figsize=(8, 8))
 
         n_skills = len(self.metrics[algoname]["x_y_location_metrics"][env_name])  # n_colors = n_skills
         # colors = plt.cm.get_cmap("tab20", max(n_skills, 1))
@@ -106,18 +108,30 @@ class Metrics:
             self.metrics[algoname]["x_y_location_metrics"][env_name].items()
         ):
             x, y = zip(*locations)
-            plt.plot(x, y, label=f"skill {i}-th", color=colors[i])
-
-        plt.title(custom_title or f"{algoname} {env_name} Explore Metrics")
-        # plt.xlabel('x')
-        # plt.ylabel('y')
-        plt.xlim(x_lim)
-        plt.ylim(y_lim)
-        if legend:
-            plt.legend()
-        if file:
-            plt.savefig(file)
-        plt.show()
+            if ax is not None:
+                ax.plot(x, y, label=f"skill {i}-th", color=colors[i])
+            else:
+                plt.plot(x, y, label=f"skill {i}-th", color=colors[i])
+        if ax is None:
+            plt.title(custom_title or f"{algoname} {env_name} Explore Metrics")
+            # plt.xlabel('x')
+            # plt.ylabel('y')
+            plt.xlim(x_lim)
+            plt.ylim(y_lim)
+            if legend:
+                plt.legend()
+            if file:
+                plt.savefig(file)
+            plt.show()
+        else:
+            ax.set_title(custom_title or f"{algoname} {env_name} Explore Metrics")
+            # ax.set_xlabel('x')
+            # ax.set_ylabel('y')
+            ax.set_xlim(x_lim)
+            ax.set_ylim(y_lim)
+            if legend:
+                ax.legend()
+        return ax
 
     def save_x_location(self, algoname: str, env_name: str, skill: Any, x: float):
         if env_name not in self.metrics[algoname]["x_location_metrics"]:
@@ -129,7 +143,7 @@ class Metrics:
         self.metrics[algoname]["x_location_metrics"][env_name][skill].append(x)
 
     def plot_x_location_metrics(
-        self, algoname: str, env_name: str, cmap_name = 'hsv', file: str = None, custom_title: str = None, legend: bool = False, x_lim = (-10, 10)
+        self, algoname: str, env_name: str, cmap_name = 'hsv', file: str = None, custom_title: str = None, legend: bool = False, x_lim = (-10, 10), ax: Axes = None
     ):
         if "x_location_metrics" not in self.metrics[algoname]:
             print(f"No x location metrics found for {algoname}")
@@ -139,7 +153,8 @@ class Metrics:
             print(f"No x location metrics found for {algoname} in environment {env_name}")
             return
 
-        plt.figure(figsize=(8, 8))
+        if ax is None:
+            plt.figure(figsize=(8, 8))
 
         n_skills = len(self.metrics[algoname]["x_location_metrics"][env_name])  # n_colors = n_skills
         # colors = plt.cm.get_cmap("tab20", max(n_skills, 1))
@@ -161,18 +176,31 @@ class Metrics:
 
             density = (density - density.min()) / density.max()
 
-            plt.fill_between(xs, y*2 + density, y*2 - density, color=colors[i], alpha=0.25)
+            if ax is not None:
+                ax.fill_between(xs, y*2 + density, y*2 - density, color=colors[i], alpha=0.25)
+            else:
+                plt.fill_between(xs, y*2 + density, y*2 - density, color=colors[i], alpha=0.25)
 
-        plt.title(custom_title or f"{algoname} {env_name} X Location Metrics")
-        # plt.xlabel('Time step')
-        # plt.ylabel('X position')
-        plt.yticks([])
-        plt.xlim(x_lim)
-        if legend:
-            plt.legend()
-        if file:
-            plt.savefig(file)
-        plt.show()
+        if ax is None:
+            plt.title(custom_title or f"{algoname} {env_name} X Location Metrics")
+            # plt.xlabel('Time step')
+            # plt.ylabel('X position')
+            plt.yticks([])
+            plt.xlim(x_lim)
+            if legend:
+                plt.legend()
+            if file:
+                plt.savefig(file)
+            plt.show()
+        else:
+            ax.set_title(custom_title or f"{algoname} {env_name} X Location Metrics")
+            # ax.set_xlabel('Time step')
+            # ax.set_ylabel('X position')
+            ax.set_yticks([])
+            ax.set_xlim(x_lim)
+            if legend:
+                ax.legend()
+        return ax
 
     def save_return(self, algoname: str, env_name: str, ret: float):
         """
