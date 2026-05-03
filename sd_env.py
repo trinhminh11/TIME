@@ -6,6 +6,7 @@ from agent.diayn import DIAYNAgent
 from agent.ours import OursAgent
 from dmc import ExtendedTimeStepWrapper
 import utils
+import torch
 
 
 # wrapper for HRL env that actions = choose skill, and skill is one-hot encoded vector that gets fed into the agent's policy as meta input. The wrapper will also need to keep track of the current timestep in the episode, so that it can update the skill every N steps (where N is a hyperparameter).
@@ -31,9 +32,10 @@ class DiscreteSkillDiscoveryEnvWrapper(dm_env.Environment):
         meta["skill"][int(action)] = 1.0
 
         with utils.eval_mode(self._agent):
-            action = self._agent.act(
-                self._last_timestep.observation, meta, 1000000, eval_mode=True
-            )
+            with torch.no_grad():
+                action = self._agent.act(
+                    self._last_timestep.observation, meta, 1000000, eval_mode=True
+                )
 
         timestep = self._env.step(action)
         self._last_timestep = timestep

@@ -21,6 +21,7 @@ implementation.md
 tests/
 ours/
 models/
+pretrained_models/
 exp_local/
 metrics.pkl
 temp*

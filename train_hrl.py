@@ -175,6 +175,9 @@ class Workspace:
                     log('episode_length',
                         float(np.mean(rollout_stats['episode_lengths'])) *
                         self.cfg.action_repeat)
+                else:
+                    log('episode_reward', 0.0)
+                    log('episode_length', 0.0)
 
     def _maybe_save_snapshots(self):
         if self._next_snapshot_idx >= len(self._snapshot_frames):
@@ -209,6 +212,8 @@ class Workspace:
         def try_load(seed):
             snapshot = snapshot_dir / str(
                 seed) / f'snapshot_{self.cfg.snapshot_ts}.pt'
+            print(os.getcwd())
+            print(f'trying to load low-level snapshot: {snapshot}')
             if not snapshot.exists():
                 return None
             with snapshot.open('rb') as f:
