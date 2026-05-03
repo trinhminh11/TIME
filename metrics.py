@@ -283,3 +283,38 @@ class Metrics:
         # return float(np.mean(conf_mat))
 
         return float(np.max(dist_matrix)), float(np.mean(dist_matrix)), float(np.min(dist_matrix))
+
+
+    def plot_state_coverage_from_env(self, env_name: str, window_size: float = 0.5) -> int:
+
+        ret = {}
+
+        for algoname in self.metrics:
+            try:
+                data = self.metrics[algoname]['x_y_location_metrics'][env_name]
+            except KeyError:
+                continue
+
+            counted_dict = {}
+
+            ret[algoname] = []
+
+            for i in range(len(data[list(data.keys())[0]])):  # for each time step, we assume each skill has the same number of data points
+                for skill in data:
+                    x_y = data[skill][i]
+                    x = x_y[0]
+                    y = x_y[1]
+
+                    x_windowed = int(x // window_size) * window_size
+                    y_windowed = int(y // window_size) * window_size
+                    counted_dict[(x_windowed, y_windowed)] = counted_dict.get((x_windowed, y_windowed), 0) + 1
+
+                ret[algoname].append(len(counted_dict))
+
+            plt.plot(ret[algoname], label=algoname)
+
+        plt.title(f"State Coverage in {env_name}")
+        plt.xlabel("Time step")
+        plt.ylabel("Unique states visited (windowed)")
+        plt.legend()
+        plt.show()

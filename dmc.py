@@ -469,7 +469,7 @@ def _make_antmaze(obs_type, task, action_repeat, seed, render_mode):
     if task not in gym_env_id_map:
         raise ValueError(f'Unknown AntMaze task: {task}')
 
-    env = gym.make(gym_env_id_map[task], render_mode=render_mode)
+    env = gym.make(gym_env_id_map[task], render_mode=render_mode, reward_type='dense')
     env = GymnasiumWrapper(env, seed=seed)
     env = ActionDTypeWrapper(env, np.float32)
     env = ActionRepeatWrapper(env, action_repeat)
