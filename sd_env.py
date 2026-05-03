@@ -32,6 +32,8 @@ class DiscreteSkillDiscoveryEnvWrapper(dm_env.Environment):
         meta = {"skill": np.zeros(self._agent.skill_dim, dtype=np.float32)}
         meta["skill"][int(action)] = 1.0
 
+        reward = 0
+
         with utils.eval_mode(self._agent):
             with torch.no_grad():
                 for _ in range(self.t):
@@ -41,10 +43,18 @@ class DiscreteSkillDiscoveryEnvWrapper(dm_env.Environment):
 
                     timestep = self._env.step(action)
                     self._last_timestep = timestep
+                    reward += timestep.reward
                     if self._last_timestep.last():
                         break
 
-        return self._last_timestep
+        return ExtendedTimeStep(
+            step_type=self._last_timestep.step_type,
+            reward=reward,
+            discount=self._last_timestep.discount,
+            observation=self._last_timestep.observation,
+            action=self._last_timestep.action,
+            info=self._last_timestep.info,
+        )
 
     def observation_spec(self):
         return self._observation_spec
@@ -78,6 +88,7 @@ class AntMazeFromAntPretrainedEnvWrapper(DiscreteSkillDiscoveryEnvWrapper):
         meta = {"skill": np.zeros(self._agent.skill_dim, dtype=np.float32)}
         meta["skill"][int(action)] = 1.0
 
+        reward = 0
         with utils.eval_mode(self._agent):
             with torch.no_grad():
                 for _ in range(self.t):
@@ -94,9 +105,15 @@ class AntMazeFromAntPretrainedEnvWrapper(DiscreteSkillDiscoveryEnvWrapper):
                         action=timestep.action,
                         info=timestep.info,
                     )
+                    reward += self._last_timestep.reward
                     if self._last_timestep.last():
                         break
-        return self._last_timestep
-
-
+        return ExtendedTimeStep(
+            step_type=self._last_timestep.step_type,
+            reward=reward,
+            discount=self._last_timestep.discount,
+            observation=self._last_timestep.observation,
+            action=self._last_timestep.action,
+            info=self._last_timestep.info,
+        )
 
