@@ -250,7 +250,7 @@ class Metrics:
         """
         # support either a single iterable of observations or multiple obs args
 
-        labels = list(self.metrics[algoname]["trajectory_embeddings"][env_name].keys())
+        # labels = list(self.metrics[algoname]["trajectory_embeddings"][env_name].keys())
 
         embeddings = [self.metrics[algoname]["trajectory_embeddings"][env_name][skill] for skill in self.metrics[algoname]["trajectory_embeddings"][env_name]]
 
@@ -290,24 +290,33 @@ class Metrics:
         ret = {}
 
         for algoname in self.metrics:
+            use_x_y = True
             try:
                 data = self.metrics[algoname]['x_y_location_metrics'][env_name]
             except KeyError:
-                continue
+                try:
+                    data = self.metrics[algoname]['x_location_metrics'][env_name]
+                    use_x_y = False
+                except KeyError:
+                    continue
 
             counted_dict = {}
-
             ret[algoname] = []
 
             for i in range(len(data[list(data.keys())[0]])):  # for each time step, we assume each skill has the same number of data points
                 for skill in data:
-                    x_y = data[skill][i]
-                    x = x_y[0]
-                    y = x_y[1]
+                    if use_x_y:
+                        x_y = data[skill][i]
+                        x = x_y[0]
+                        y = x_y[1]
+                        x_windowed = int(x // window_size) * window_size
+                        y_windowed = int(y // window_size) * window_size
+                        counted_dict[(x_windowed, y_windowed)] = counted_dict.get((x_windowed, y_windowed), 0) + 1
 
-                    x_windowed = int(x // window_size) * window_size
-                    y_windowed = int(y // window_size) * window_size
-                    counted_dict[(x_windowed, y_windowed)] = counted_dict.get((x_windowed, y_windowed), 0) + 1
+                    else:
+                        x = data[skill][i]
+                        x_windowed = int(x // window_size) * window_size
+                        counted_dict[x_windowed] = counted_dict.get(x_windowed, 0) + 1
 
                 ret[algoname].append(len(counted_dict))
 
