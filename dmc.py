@@ -362,7 +362,7 @@ class ObservationDTypeWrapper(dm_env.Environment):
 
 
 class ExtendedTimeStepWrapper(dm_env.Environment):
-    def __init__(self, env):
+    def __init__(self, env: dm_env.Environment):
         self._env = env
 
     def reset(self):
