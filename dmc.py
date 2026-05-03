@@ -10,13 +10,12 @@ from dm_env import StepType, specs
 
 import custom_dmc_tasks as cdmc
 
-
-class ExtendedTimeStep(NamedTuple):
+class TimeStepWithInfo(NamedTuple):
     step_type: Any
     reward: Any
     discount: Any
     observation: Any
-    action: Any
+    info: Any
 
     def first(self):
         return self.step_type == StepType.FIRST
@@ -30,6 +29,55 @@ class ExtendedTimeStep(NamedTuple):
     def __getitem__(self, attr):
         return getattr(self, attr)
 
+
+class ExtendedTimeStep(NamedTuple):
+    step_type: Any
+    reward: Any
+    discount: Any
+    observation: Any
+    action: Any
+    info: Any
+
+    def first(self):
+        return self.step_type == StepType.FIRST
+
+    def mid(self):
+        return self.step_type == StepType.MID
+
+    def last(self):
+        return self.step_type == StepType.LAST
+
+    def __getitem__(self, attr):
+        return getattr(self, attr)
+
+class TimeStepWithInfoWrapper(dm_env.Environment):
+    def __init__(self, env):
+        self._env = env
+
+    def reset(self):
+        time_step = self._env.reset()
+        return TimeStepWithInfo(step_type=time_step.step_type,
+                                reward=time_step.reward,
+                                discount=time_step.discount,
+                                observation=time_step.observation,
+                                info={})
+
+    def step(self, action):
+        time_step = self._env.step(action)
+        return TimeStepWithInfo(step_type=time_step.step_type,
+                                reward=time_step.reward,
+                                discount=time_step.discount,
+                                observation=time_step.observation,
+                                info={})
+
+    def observation_spec(self):
+        return self._env.observation_spec()
+
+    def action_spec(self):
+        return self._env.action_spec()
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
 
 class GymnasiumWrapper(dm_env.Environment):
     def __init__(self, env, seed):
@@ -75,21 +123,23 @@ class GymnasiumWrapper(dm_env.Environment):
         else:
             obs, _ = self._env.reset()
         self._latest_obs = self._flatten_obs(obs)
-        return dm_env.TimeStep(step_type=StepType.FIRST,
+        return TimeStepWithInfo(step_type=StepType.FIRST,
                                reward=0.0,
                                discount=1.0,
-                               observation=self._latest_obs)
+                               observation=self._latest_obs,
+                               info={})
 
     def step(self, action):
-        obs, reward, terminated, truncated, _ = self._env.step(action)
+        obs, reward, terminated, truncated, info = self._env.step(action)
         self._latest_obs = self._flatten_obs(obs)
         is_last = terminated or truncated
         step_type = StepType.LAST if is_last else StepType.MID
         discount = 0.0 if terminated else 1.0
-        return dm_env.TimeStep(step_type=step_type,
+        return TimeStepWithInfo(step_type=step_type,
                                reward=float(reward),
                                discount=discount,
-                               observation=self._latest_obs)
+                               observation=self._latest_obs,
+                               info=info)
 
     def observation_spec(self):
         return self._obs_spec
@@ -331,7 +381,8 @@ class ExtendedTimeStepWrapper(dm_env.Environment):
                                 step_type=time_step.step_type,
                                 action=action,
                                 reward=time_step.reward or 0.0,
-                                discount=time_step.discount or 1.0)
+                                discount=time_step.discount or 1.0,
+                                info=time_step.info)
 
     def observation_spec(self):
         return self._env.observation_spec()
@@ -347,6 +398,7 @@ def _make_jaco(obs_type, domain, task, frame_stack, action_repeat, seed):
     env = cdmc.make_jaco(task, obs_type, seed)
     env = ActionDTypeWrapper(env, np.float32)
     env = ActionRepeatWrapper(env, action_repeat)
+    env = TimeStepWithInfoWrapper(env)
     env = FlattenJacoObservationWrapper(env)
     return env
 
@@ -366,6 +418,7 @@ def _make_dmc(obs_type, domain, task, frame_stack, action_repeat, seed):
                         environment_kwargs=dict(flat_observation=True),
                         visualize_reward=visualize_reward)
 
+    env = TimeStepWithInfoWrapper(env)
     env = ActionDTypeWrapper(env, np.float32)
     env = ActionRepeatWrapper(env, action_repeat)
     if obs_type == 'pixels':
