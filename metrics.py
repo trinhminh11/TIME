@@ -7,6 +7,7 @@ from matplotlib.axes import Axes
 import numpy as np
 from scipy.stats import gaussian_kde
 from sklearn.metrics.pairwise import cosine_distances
+from functools import lru_cache
 
 
 class MetricsDict(TypedDict):
@@ -213,20 +214,91 @@ class Metrics:
         Use this for downstream tasks, where we only care about the return of the final policy.
         Use at the end of episode, you should run this for a certain number of episodes -> this will save and later can print the mean and std of the return.
         """
-        self.metrics[algoname]["returns"][env_name] = self.metrics[algoname].get(env_name, []) + [ret]
+        if env_name not in self.metrics[algoname]["returns"]:
+            self.metrics[algoname]["returns"][env_name] = []
+        self.metrics[algoname]["returns"][env_name].append(ret)
 
-    def print_return_metrics(self, algoname: str, env_name: str):
-        returns = self.metrics[algoname].get("returns", {}).get(env_name, [])
-        if not returns:
-            print(f"No return metrics found for {algoname} in environment {env_name}")
-            return
-        mean_return = sum(returns) / len(returns)
-        std_return = (
-            sum((r - mean_return) ** 2 for r in returns) / len(returns)
-        ) ** 0.5
-        print(
-            f"{algoname} Return Metrics: Mean = {mean_return:.2f}, Std = {std_return:.2f}"
-        )
+    def set_returns(self, algoname: str, env_name: str, returns: list[float]):
+        """
+        Use this for training curves, where we care about the return of the policy during training.
+        Use at the end of episode, you should run this for a certain number of episodes -> this will save and later can print the mean and std of the return.
+        """
+        self.metrics[algoname]["returns"][env_name] = returns
+
+
+    @lru_cache(maxsize=128)
+    def get_means_and_stds(self, algoname: str, env_name: str, window: int = 100) -> tuple[np.ndarray, np.ndarray]:
+        returns = np.asarray(self.metrics[algoname]["returns"][env_name])
+
+        means = np.zeros(len(returns))
+        stds = np.zeros(len(returns))
+
+        for i in range(len(returns)):
+            start = max(0, i - window + 1)
+            window_data = returns[start:i+1]
+
+            means[i] = np.mean(window_data)
+            stds[i] = np.std(window_data)
+
+        return means, stds
+
+
+    def plot_running_returns(self, algonames: list[str], env_name: str, window: int = 100, x_lim=None, y_lim = None, file: str = None, custom_title: str = None, legend: bool = False, ax: Axes = None):
+        if ax is None:
+            plt.figure()
+
+        for algoname in algonames:
+            if "returns" not in self.metrics[algoname]:
+                print(f"No return metrics found for {algoname}")
+                continue
+
+            if env_name not in self.metrics[algoname]["returns"]:
+                print(f"No return metrics found for {algoname} in environment {env_name}")
+                continue
+
+            means, stds = self.get_means_and_stds(algoname, env_name, window)
+
+            # Plot
+            if ax is None:
+                plt.plot(means, label=algoname)
+                plt.fill_between(
+                    range(len(means)),
+                    means - stds,
+                    means + stds,
+                    alpha=0.3,
+                )
+            else:
+                ax.plot(means, label=algoname)
+                ax.fill_between(
+                    range(len(means)),
+                    means - stds,
+                    means + stds,
+                    alpha=0.3,
+                )
+
+        if ax is None:
+            if x_lim is not None:
+                plt.xlim(x_lim)
+            if y_lim is not None:
+                plt.ylim(y_lim)
+
+            plt.xlabel("Episode")
+            plt.ylabel("Return")
+            if legend:
+                plt.legend()
+            plt.title(custom_title or f"Returns (window={window})")
+            plt.show()
+        else:
+            if x_lim is not None:
+                ax.set_xlim(x_lim)
+            if y_lim is not None:
+                ax.set_ylim(y_lim)
+
+            ax.set_xlabel("Episode")
+            ax.set_ylabel("Return")
+            if legend:
+                ax.legend()
+            ax.set_title(custom_title or f"Returns (window={window})")
 
     def save_traj(self, algoname: str, env_name: str, skill: Any, traj_embed: np.ndarray):
         """

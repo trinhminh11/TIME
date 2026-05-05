@@ -111,6 +111,8 @@ class Workspace:
         self._snapshot_frames = sorted({int(frame) for frame in cfg.snapshots})
         self._next_snapshot_idx = 0
 
+        self.running_reward = []
+
     @property
     def global_step(self):
         return self.agent.global_step
@@ -171,20 +173,22 @@ class Workspace:
             elapsed_time, total_time = self.timer.reset()
             frames_in_rollout = self.cfg.ppo.num_steps * self.cfg.num_envs * self.cfg.action_repeat
 
-            with self.logger.log_and_dump_ctx(self.global_frame, ty='train') as log:
-                log('fps', frames_in_rollout / max(elapsed_time, 1e-6))
-                log('total_time', total_time)
-                log('episode', self.global_episode)
-                log('step', self.global_step)
-                if rollout_stats['episode_returns']:
-                    log('episode_reward',
-                        float(np.mean(rollout_stats['episode_returns'])))
-                    log('episode_length',
-                        float(np.mean(rollout_stats['episode_lengths'])) *
-                        self.cfg.action_repeat)
-                else:
-                    log('episode_reward', 0.0)
-                    log('episode_length', 0.0)
+            if num_finished > 0:
+                with self.logger.log_and_dump_ctx(self.global_frame, ty='train') as log:
+                    for i in range(num_finished):
+                        log('fps', frames_in_rollout / max(elapsed_time, 1e-6))
+                        log('total_time', total_time)
+                        log('episode', self.global_episode)
+                        log('step', self.global_step)
+                        log('episode_reward', float(rollout_stats['episode_returns'][i]))
+                        log('episode_length', float(rollout_stats['episode_lengths'][i]) * self.cfg.action_repeat)
+                        # log('episode_reward', float(np.mean(rollout_stats['episode_returns'])))
+                        # log('episode_length', float(np.mean(rollout_stats['episode_lengths'])) * self.cfg.action_repeat)
+                        self.running_reward.append(float(rollout_stats['episode_returns'][i]))
+
+        with open(self.work_dir / 'running_reward.txt', 'w') as f:
+            for reward in self.running_reward:
+                f.write(f'{reward}\n')
 
     def _maybe_save_snapshots(self):
         if self._next_snapshot_idx >= len(self._snapshot_frames):

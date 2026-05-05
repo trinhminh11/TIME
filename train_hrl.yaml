@@ -23,8 +23,8 @@ eval_every_frames: 10000
 num_eval_episodes: 10 # doesnt matter
 
 # low-level pretrained controller
-snapshot_ts: 100000
-snapshot_base_dir: ../../../pretrained_models
+snapshot_ts: 1000000
+snapshot_base_dir: ../../../models
 
 # snapshot
 snapshots: [100000, 500000, 1000000, 2000000]
@@ -46,7 +46,7 @@ ppo:
 
 # misc
 seed: 1
-device: cuda:0
+device: cuda:1
 save_video: true
 use_tb: false
 use_wandb: false

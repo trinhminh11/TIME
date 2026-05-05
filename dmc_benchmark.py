@@ -66,6 +66,6 @@ PRIMAL_TASKS = {
     'jaco': 'jaco_reach_top_left',
     'quadruped': 'quadruped_walk',
     'ant': 'ant_temp',
-    'antmaze': 'antmaze_medium_diverse',
+    'antmaze': 'antmaze_medium',
     'humanoid': 'humanoid_walk',
 }

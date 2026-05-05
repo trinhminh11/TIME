@@ -93,7 +93,7 @@ class AntMazeFromAntPretrainedEnvWrapper(DiscreteSkillDiscoveryEnvWrapper):
             with torch.no_grad():
                 for _ in range(self.t):
                     action = self._agent.act(
-                        self._last_timestep.observation[:-4], meta, 1000000, eval_mode=True
+                        self._last_timestep.observation[:-2], meta, 1000000, eval_mode=True
                     )
 
                     timestep = self._env.step(action)

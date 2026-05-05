@@ -82,7 +82,7 @@ class MetersGroup(object):
             self._csv_file = self._csv_file_name.open('a')
             self._csv_writer = csv.DictWriter(self._csv_file,
                                               fieldnames=sorted(data.keys()),
-                                              restval=0.0)
+                                              restval=0.0, extrasaction='ignore')
             if should_write_header:
                 self._csv_writer.writeheader()
 
