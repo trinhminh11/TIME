@@ -9,6 +9,13 @@ from scipy.stats import gaussian_kde
 from sklearn.metrics.pairwise import cosine_distances
 from functools import lru_cache
 
+class AliasDict(defaultdict):
+    aliases = {"TIME": "TIME_64"}
+
+    def __getitem__(self, key):
+        if key in self.aliases:
+            key = self.aliases[key]
+        return super().__getitem__(key)
 
 class MetricsDict(TypedDict):
     x_y_location_metrics: dict[str, dict[Any, list[tuple[float, float]]]]    # key = env_name, value = dict of skill -> list of (x,y) locations
@@ -63,7 +70,7 @@ class Metrics:
 
     @staticmethod
     def __init_metrics(data: dict[str, MetricsDict] | None = None) -> dict[str, MetricsDict]:
-        metrics = defaultdict(lambda: {"x_y_location_metrics": {}, "x_location_metrics": {}, "returns": {}, "trajectory_embeddings": {}})
+        metrics = AliasDict(lambda: {"x_y_location_metrics": {}, "x_location_metrics": {}, "returns": {}, "trajectory_embeddings": {}})
 
         if data is not None:
             for algoname, metrics_dict in data.items():
