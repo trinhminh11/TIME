@@ -1,17 +1,18 @@
 import math
 from collections import OrderedDict
+from typing import Callable, Optional, Union
 
 import numpy as np
 import torch
-from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 from dm_env import specs
-from typing import Callable, Optional, Union
+from torch import Tensor
+from torch.nn.utils.parametrizations import spectral_norm
 
 import utils
 from agent.ddpg import DDPGAgent
-from torch.nn.utils.parametrizations import spectral_norm
+
 
 class TransformerEncoderLayer(nn.Module):
     r"""TransformerEncoderLayer is made up of self-attn and feedforward network.
@@ -115,13 +116,21 @@ class TransformerEncoderLayer(nn.Module):
             **factory_kwargs,
         )
         # Implementation of Feedforward model
-        self.linear1 = spectral_norm(nn.Linear(d_model, dim_feedforward, bias=bias, **factory_kwargs))
+        self.linear1 = spectral_norm(
+            nn.Linear(d_model, dim_feedforward, bias=bias, **factory_kwargs)
+        )
         self.dropout = nn.Dropout(dropout)
-        self.linear2 = spectral_norm(nn.Linear(dim_feedforward, d_model, bias=bias, **factory_kwargs))
+        self.linear2 = spectral_norm(
+            nn.Linear(dim_feedforward, d_model, bias=bias, **factory_kwargs)
+        )
 
         self.norm_first = norm_first
-        self.norm1 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
-        self.norm2 = nn.LayerNorm(d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs)
+        self.norm1 = nn.LayerNorm(
+            d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs
+        )
+        self.norm2 = nn.LayerNorm(
+            d_model, eps=layer_norm_eps, bias=bias, **factory_kwargs
+        )
         self.dropout1 = nn.Dropout(dropout)
         self.dropout2 = nn.Dropout(dropout)
 
@@ -327,6 +336,7 @@ class TransformerEncoderLayer(nn.Module):
     def _ff_block(self, x: Tensor) -> Tensor:
         x = self.linear2(self.dropout(self.activation(self.linear1(x))))
         return self.dropout2(x)
+
 
 class OneStateDiscriminator(nn.Module):
     def __init__(self, obs_dim, skill_dim, hidden_dim):
