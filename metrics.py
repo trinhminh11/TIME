@@ -438,12 +438,12 @@ class Metrics:
         )
 
     def plot_state_coverage_from_env(
-        self, env_name: str, window_size: float = 0.5
+        self, algonames: list[str], env_name: str, window_size: float = 0.5
     ) -> int:
 
         ret = {}
 
-        for algoname in self.metrics:
+        for algoname in algonames:
             use_x_y = True
             try:
                 data = self.metrics[algoname]["x_y_location_metrics"][env_name]
