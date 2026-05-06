@@ -9,6 +9,7 @@ from scipy.stats import gaussian_kde
 from sklearn.metrics.pairwise import cosine_distances
 from functools import lru_cache
 
+
 class AliasDict(defaultdict):
     aliases = {"TIME": "TIME_64"}
 
@@ -17,11 +18,18 @@ class AliasDict(defaultdict):
             key = self.aliases[key]
         return super().__getitem__(key)
 
+
 class MetricsDict(TypedDict):
-    x_y_location_metrics: dict[str, dict[Any, list[tuple[float, float]]]]    # key = env_name, value = dict of skill -> list of (x,y) locations
-    x_location_metrics: dict[str, dict[Any, list[float]]]                     # key = env_name, value = dict of skill -> list of x locations
-    trajectory_embeddings: dict[str, dict[Any, np.ndarray]]            # key = env_name, value = dict of skill -> trajectory embedding values
-    returns: dict[str, list[float]]                         # key = env_name, value = list of returns
+    x_y_location_metrics: dict[
+        str, dict[Any, list[tuple[float, float]]]
+    ]  # key = env_name, value = dict of skill -> list of (x,y) locations
+    x_location_metrics: dict[
+        str, dict[Any, list[float]]
+    ]  # key = env_name, value = dict of skill -> list of x locations
+    trajectory_embeddings: dict[
+        str, dict[Any, np.ndarray]
+    ]  # key = env_name, value = dict of skill -> trajectory embedding values
+    returns: dict[str, list[float]]  # key = env_name, value = list of returns
 
 
 class Metrics:
@@ -69,13 +77,22 @@ class Metrics:
         return ret
 
     @staticmethod
-    def __init_metrics(data: dict[str, MetricsDict] | None = None) -> dict[str, MetricsDict]:
-        metrics = AliasDict(lambda: {"x_y_location_metrics": {}, "x_location_metrics": {}, "returns": {}, "trajectory_embeddings": {}})
+    def __init_metrics(
+        data: dict[str, MetricsDict] | None = None,
+    ) -> dict[str, MetricsDict]:
+        metrics = AliasDict(
+            lambda: {
+                "x_y_location_metrics": {},
+                "x_location_metrics": {},
+                "returns": {},
+                "trajectory_embeddings": {},
+            }
+        )
 
         if data is not None:
             for algoname, metrics_dict in data.items():
-                if 'trajectory_embeddings' not in metrics_dict:
-                    metrics_dict['trajectory_embeddings'] = {}
+                if "trajectory_embeddings" not in metrics_dict:
+                    metrics_dict["trajectory_embeddings"] = {}
                 metrics[algoname] = metrics_dict
 
         return metrics
@@ -89,7 +106,9 @@ class Metrics:
             data = pkl.load(f)
             self.metrics = self.__init_metrics(data)
 
-    def save_x_y_location(self, algoname: str, env_name: str, skill: Any, x: float, y: float):
+    def save_x_y_location(
+        self, algoname: str, env_name: str, skill: Any, x: float, y: float
+    ):
         if env_name not in self.metrics[algoname]["x_y_location_metrics"]:
             self.metrics[algoname]["x_y_location_metrics"][env_name] = {}
 
@@ -99,20 +118,33 @@ class Metrics:
         self.metrics[algoname]["x_y_location_metrics"][env_name][skill].append((x, y))
 
     def plot_x_y_explore_metrics(
-        self, algoname: str, env_name: str, cmap_name = 'hsv', file: str = None, custom_title: str = None, legend: bool = False, x_lim = (-10, 10), y_lim = (-10, 10), ax: Axes = None
+        self,
+        algoname: str,
+        env_name: str,
+        cmap_name="hsv",
+        file: str = None,
+        custom_title: str = None,
+        legend: bool = False,
+        x_lim=(-10, 10),
+        y_lim=(-10, 10),
+        ax: Axes = None,
     ):
         if "x_y_location_metrics" not in self.metrics[algoname]:
             print(f"No x_y location metrics found for {algoname}")
             return
 
         if env_name not in self.metrics[algoname]["x_y_location_metrics"]:
-            print(f"No x_y location metrics found for {algoname} in environment {env_name}")
+            print(
+                f"No x_y location metrics found for {algoname} in environment {env_name}"
+            )
             return
 
         if ax is None:
             plt.figure(figsize=(8, 8))
 
-        n_skills = len(self.metrics[algoname]["x_y_location_metrics"][env_name])  # n_colors = n_skills
+        n_skills = len(
+            self.metrics[algoname]["x_y_location_metrics"][env_name]
+        )  # n_colors = n_skills
         # colors = plt.cm.get_cmap("tab20", max(n_skills, 1))
         cmap = plt.cm.get_cmap(cmap_name, n_skills)  # discrete version
 
@@ -157,20 +189,32 @@ class Metrics:
         self.metrics[algoname]["x_location_metrics"][env_name][skill].append(x)
 
     def plot_x_location_metrics(
-        self, algoname: str, env_name: str, cmap_name = 'hsv', file: str = None, custom_title: str = None, legend: bool = False, x_lim = (-10, 10), ax: Axes = None
+        self,
+        algoname: str,
+        env_name: str,
+        cmap_name="hsv",
+        file: str = None,
+        custom_title: str = None,
+        legend: bool = False,
+        x_lim=(-10, 10),
+        ax: Axes = None,
     ):
         if "x_location_metrics" not in self.metrics[algoname]:
             print(f"No x location metrics found for {algoname}")
             return
 
         if env_name not in self.metrics[algoname]["x_location_metrics"]:
-            print(f"No x location metrics found for {algoname} in environment {env_name}")
+            print(
+                f"No x location metrics found for {algoname} in environment {env_name}"
+            )
             return
 
         if ax is None:
             plt.figure(figsize=(8, 8))
 
-        n_skills = len(self.metrics[algoname]["x_location_metrics"][env_name])  # n_colors = n_skills
+        n_skills = len(
+            self.metrics[algoname]["x_location_metrics"][env_name]
+        )  # n_colors = n_skills
         # colors = plt.cm.get_cmap("tab20", max(n_skills, 1))
         cmap = plt.cm.get_cmap(cmap_name, n_skills)  # discrete version
 
@@ -191,9 +235,13 @@ class Metrics:
             density = (density - density.min()) / density.max()
 
             if ax is not None:
-                ax.fill_between(xs, y*2 + density, y*2 - density, color=colors[i], alpha=0.25)
+                ax.fill_between(
+                    xs, y * 2 + density, y * 2 - density, color=colors[i], alpha=0.25
+                )
             else:
-                plt.fill_between(xs, y*2 + density, y*2 - density, color=colors[i], alpha=0.25)
+                plt.fill_between(
+                    xs, y * 2 + density, y * 2 - density, color=colors[i], alpha=0.25
+                )
 
         if ax is None:
             plt.title(custom_title or f"{algoname} {env_name} X Location Metrics")
@@ -232,9 +280,10 @@ class Metrics:
         """
         self.metrics[algoname]["returns"][env_name] = returns
 
-
     @lru_cache(maxsize=128)
-    def get_means_and_stds(self, algoname: str, env_name: str, window: int = 100) -> tuple[np.ndarray, np.ndarray]:
+    def get_means_and_stds(
+        self, algoname: str, env_name: str, window: int = 100
+    ) -> tuple[np.ndarray, np.ndarray]:
         returns = np.asarray(self.metrics[algoname]["returns"][env_name])
 
         means = np.zeros(len(returns))
@@ -242,15 +291,25 @@ class Metrics:
 
         for i in range(len(returns)):
             start = max(0, i - window + 1)
-            window_data = returns[start:i+1]
+            window_data = returns[start : i + 1]
 
             means[i] = np.mean(window_data)
             stds[i] = np.std(window_data)
 
         return means, stds
 
-
-    def plot_running_returns(self, algonames: list[str], env_name: str, window: int = 100, x_lim=None, y_lim = None, file: str = None, custom_title: str = None, legend: bool = False, ax: Axes = None):
+    def plot_running_returns(
+        self,
+        algonames: list[str],
+        env_name: str,
+        window: int = 100,
+        x_lim=None,
+        y_lim=None,
+        file: str = None,
+        custom_title: str = None,
+        legend: bool = False,
+        ax: Axes = None,
+    ):
         if ax is None:
             plt.figure()
 
@@ -260,7 +319,9 @@ class Metrics:
                 continue
 
             if env_name not in self.metrics[algoname]["returns"]:
-                print(f"No return metrics found for {algoname} in environment {env_name}")
+                print(
+                    f"No return metrics found for {algoname} in environment {env_name}"
+                )
                 continue
 
             means, stds = self.get_means_and_stds(algoname, env_name, window)
@@ -289,7 +350,7 @@ class Metrics:
             if y_lim is not None:
                 plt.ylim(y_lim)
 
-            plt.xlabel("Episode")
+            plt.xlabel("TimeStep")
             plt.ylabel("Return")
             if legend:
                 plt.legend()
@@ -301,13 +362,15 @@ class Metrics:
             if y_lim is not None:
                 ax.set_ylim(y_lim)
 
-            ax.set_xlabel("Episode")
+            ax.set_xlabel("TimeStep")
             ax.set_ylabel("Return")
             if legend:
                 ax.legend()
             ax.set_title(custom_title or f"Returns (window={window})")
 
-    def save_traj(self, algoname: str, env_name: str, skill: Any, traj_embed: np.ndarray):
+    def save_traj(
+        self, algoname: str, env_name: str, skill: Any, traj_embed: np.ndarray
+    ):
         """
         Save a trajectory for a specific skill in a specific environment.
         """
@@ -320,7 +383,12 @@ class Metrics:
         self.metrics[algoname]["trajectory_embeddings"][env_name][skill] = traj_embed
 
     def plot_traj_confusion_matrix(
-        self, algoname: str, env_name: str, file: str = None, custom_title: str = None, ax: Axes = None
+        self,
+        algoname: str,
+        env_name: str,
+        file: str = None,
+        custom_title: str = None,
+        ax: Axes = None,
     ) -> tuple[float, float, float]:
         """
         traj is list of observations
@@ -331,7 +399,10 @@ class Metrics:
 
         # labels = list(self.metrics[algoname]["trajectory_embeddings"][env_name].keys())
 
-        embeddings = [self.metrics[algoname]["trajectory_embeddings"][env_name][skill] for skill in self.metrics[algoname]["trajectory_embeddings"][env_name]]
+        embeddings = [
+            self.metrics[algoname]["trajectory_embeddings"][env_name][skill]
+            for skill in self.metrics[algoname]["trajectory_embeddings"][env_name]
+        ]
 
         if len(embeddings) == 0:
             print("No trajectory observations provided")
@@ -340,7 +411,6 @@ class Metrics:
         X = np.array(embeddings)
 
         np.random.shuffle(X)
-
 
         # cosine distance matrix: 0 = identical direction, 1 = orthogonal
         dist_matrix = cosine_distances(X)
@@ -361,20 +431,25 @@ class Metrics:
         # # return mean similarity as a simple metric
         # return float(np.mean(conf_mat))
 
-        return float(np.max(dist_matrix)), float(np.mean(dist_matrix)), float(np.min(dist_matrix))
+        return (
+            float(np.max(dist_matrix)),
+            float(np.mean(dist_matrix)),
+            float(np.min(dist_matrix)),
+        )
 
-
-    def plot_state_coverage_from_env(self, env_name: str, window_size: float = 0.5) -> int:
+    def plot_state_coverage_from_env(
+        self, env_name: str, window_size: float = 0.5
+    ) -> int:
 
         ret = {}
 
         for algoname in self.metrics:
             use_x_y = True
             try:
-                data = self.metrics[algoname]['x_y_location_metrics'][env_name]
+                data = self.metrics[algoname]["x_y_location_metrics"][env_name]
             except KeyError:
                 try:
-                    data = self.metrics[algoname]['x_location_metrics'][env_name]
+                    data = self.metrics[algoname]["x_location_metrics"][env_name]
                     use_x_y = False
                 except KeyError:
                     continue
@@ -382,7 +457,9 @@ class Metrics:
             counted_dict = {}
             ret[algoname] = []
 
-            for i in range(len(data[list(data.keys())[0]])):  # for each time step, we assume each skill has the same number of data points
+            for i in range(
+                len(data[list(data.keys())[0]])
+            ):  # for each time step, we assume each skill has the same number of data points
                 for skill in data:
                     if use_x_y:
                         x_y = data[skill][i]
@@ -390,7 +467,9 @@ class Metrics:
                         y = x_y[1]
                         x_windowed = int(x // window_size) * window_size
                         y_windowed = int(y // window_size) * window_size
-                        counted_dict[(x_windowed, y_windowed)] = counted_dict.get((x_windowed, y_windowed), 0) + 1
+                        counted_dict[(x_windowed, y_windowed)] = (
+                            counted_dict.get((x_windowed, y_windowed), 0) + 1
+                        )
 
                     else:
                         x = data[skill][i]
@@ -406,3 +485,71 @@ class Metrics:
         plt.ylabel("Unique states visited (windowed)")
         plt.legend()
         plt.show()
+
+    def plot_percentage_state_coverage(
+        self,
+        algonames: list[str],
+        env_name: str,
+        window_size: float = 0.5,
+        lower_bound: int = 1,
+        upper_bound=None,
+    ):
+        ret: dict[str, list[int]] = {}
+
+        for algoname in algonames:
+            use_x_y = True
+            try:
+                data = self.metrics[algoname]["x_y_location_metrics"][env_name]
+            except KeyError:
+                try:
+                    data = self.metrics[algoname]["x_location_metrics"][env_name]
+                    use_x_y = False
+                except KeyError:
+                    continue
+
+            counted_dict = {}
+            ret[algoname] = []
+
+            for i in range(
+                len(data[list(data.keys())[0]])
+            ):  # for each time step, we assume each skill has the same number of data points
+                for skill in list(data.keys())[:16]:
+                    if use_x_y:
+                        x_y = data[skill][i]
+                        x = x_y[0]
+                        y = x_y[1]
+                        x_windowed = int(x // window_size) * window_size
+                        y_windowed = int(y // window_size) * window_size
+                        counted_dict[(x_windowed, y_windowed)] = (
+                            counted_dict.get((x_windowed, y_windowed), 0) + 1
+                        )
+
+                    else:
+                        x = data[skill][i]
+                        x_windowed = int(x // window_size) * window_size
+                        counted_dict[x_windowed] = counted_dict.get(x_windowed, 0) + 1
+
+                ret[algoname].append(
+                    len(
+                        [
+                            loc
+                            for loc, count in counted_dict.items()
+                            if count >= lower_bound
+                            and (upper_bound is None or count <= upper_bound)
+                        ]
+                    )
+                    / len(counted_dict)
+                    if len(counted_dict) > 0
+                    else 0
+                )
+
+            plt.plot(ret[algoname], label=algoname)
+
+        plt.title(f"State Coverage in {env_name}")
+        plt.xlabel("Time step")
+        # plt.ylim((0, 1))
+        plt.ylabel("Unique states visited (windowed)")
+        plt.legend()
+        plt.show()
+
+        return ret
