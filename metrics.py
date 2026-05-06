@@ -350,7 +350,7 @@ class Metrics:
             if y_lim is not None:
                 plt.ylim(y_lim)
 
-            plt.xlabel("TimeStep")
+            plt.xlabel("Step")
             plt.ylabel("Return")
             if legend:
                 plt.legend()
@@ -362,7 +362,7 @@ class Metrics:
             if y_lim is not None:
                 ax.set_ylim(y_lim)
 
-            ax.set_xlabel("TimeStep")
+            ax.set_xlabel("Step")
             ax.set_ylabel("Return")
             if legend:
                 ax.legend()
