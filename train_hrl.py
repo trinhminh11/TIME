@@ -18,7 +18,7 @@ import utils
 from dmc_benchmark import PRIMAL_TASKS
 from hrl_agent.ppo import PPOConfig, PPOTrainer
 from logger import Logger
-from sd_env import AntMazeFromAntPretrainedEnvWrapper, DiscreteSkillDiscoveryEnvWrapper
+from sd_env import AntMazeFromAntPretrainedEnvWrapper, DiscreteSkillDiscoveryEnvWrapper, Goal1DEnvWrapper, Goal2DEnvWrapper
 from video import VideoRecorder
 
 torch.backends.cudnn.benchmark = True
@@ -78,6 +78,13 @@ class Workspace:
                            cfg.action_repeat, seed)
             if cfg.domain == 'antmaze':
                 return AntMazeFromAntPretrainedEnvWrapper(env, self.low_level_agent, cfg.t_steps)
+            elif cfg.domain == 'cheetahgoal':
+                return Goal1DEnvWrapper(env, (-100, 100), 1.0)
+            elif cfg.domain == 'quadrupedgoal':
+                return Goal2DEnvWrapper(env, (-15, 15), (-15, 15), 1.0)
+            elif cfg.domain == 'humanoidgoal':
+                return Goal2DEnvWrapper(env, (-10, 10), (-10, 10), 1.0)
+
             return DiscreteSkillDiscoveryEnvWrapper(env, self.low_level_agent, cfg.t_steps)
 
         self.eval_env = make_hrl_env(cfg.seed)

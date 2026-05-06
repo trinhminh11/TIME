@@ -6,6 +6,9 @@ DOMAINS = [
     'humanoid',
     'jaco',
     'ant',
+    "cheetahgoal",
+    "quadrupedgoal",
+    "humanoidgoal",
 ]
 
 HOPPER_TASKS = [
@@ -68,4 +71,7 @@ PRIMAL_TASKS = {
     'ant': 'ant_temp',
     'antmaze': 'antmaze_medium',
     'humanoid': 'humanoid_walk',
+    "cheetahgoal": "cheetahgoal_temp",
+    "quadrupedgoal": "quadrupedgoal_temp",
+    "humanoidgoal": "humanoidgoal_temp"
 }
