@@ -1,13 +1,13 @@
 import pickle as pkl
 from collections import defaultdict
+from functools import lru_cache
 from typing import Any, TypedDict
 
 import matplotlib.pyplot as plt
-from matplotlib.axes import Axes
 import numpy as np
+from matplotlib.axes import Axes
 from scipy.stats import gaussian_kde
 from sklearn.metrics.pairwise import cosine_distances
-from functools import lru_cache
 
 
 class AliasDict(defaultdict):
@@ -438,7 +438,7 @@ class Metrics:
         )
 
     def plot_state_coverage_from_env(
-        self, algonames: list[str], env_name: str, window_size: float = 0.5
+        self, algonames: list[str], env_name: str, window_size: float = 0.5, window: int = 100, ax: Axes = None
     ) -> int:
 
         ret = {}
@@ -478,13 +478,48 @@ class Metrics:
 
                 ret[algoname].append(len(counted_dict))
 
-            plt.plot(ret[algoname], label=algoname)
+        if ax is None:
+            plt.figure()
 
-        plt.title(f"State Coverage in {env_name}")
-        plt.xlabel("Time step")
-        plt.ylabel("Unique states visited (windowed)")
-        plt.legend()
-        plt.show()
+        for algoname in ret:
+            coverage_data = np.asarray(ret[algoname])
+            means = np.zeros(len(coverage_data))
+            stds = np.zeros(len(coverage_data))
+
+            for i in range(len(coverage_data)):
+                start = max(0, i - window + 1)
+                window_data = coverage_data[start : i + 1]
+                means[i] = np.mean(window_data)
+                stds[i] = np.std(window_data)
+
+            if ax is None:
+                plt.plot(means, label=algoname)
+                plt.fill_between(
+                    range(len(means)),
+                    means - stds,
+                    means + stds,
+                    alpha=0.3,
+                )
+            else:
+                ax.plot(means, label=algoname)
+                ax.fill_between(
+                    range(len(means)),
+                    means - stds,
+                    means + stds,
+                    alpha=0.3,
+                )
+
+        if ax is None:
+            plt.title(f"State Coverage in {env_name} (window={window})")
+            plt.xlabel("Time step")
+            plt.ylabel("Unique states visited (windowed)")
+            plt.legend()
+            plt.show()
+        else:
+            ax.set_title(f"State Coverage in {env_name} (window={window})")
+            ax.set_xlabel("Time step")
+            ax.set_ylabel("Unique states visited (windowed)")
+            ax.legend()
 
     def plot_percentage_state_coverage(
         self,
