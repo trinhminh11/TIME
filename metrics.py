@@ -510,13 +510,13 @@ class Metrics:
                 )
 
         if ax is None:
-            plt.title(f"State Coverage in {env_name} (window={window})")
+            plt.title(f"State Coverage in {env_name}")
             plt.xlabel("Time step")
             plt.ylabel("Unique states visited (windowed)")
             plt.legend()
             plt.show()
         else:
-            ax.set_title(f"State Coverage in {env_name} (window={window})")
+            ax.set_title(f"State Coverage in {env_name}")
             ax.set_xlabel("Time step")
             ax.set_ylabel("Unique states visited (windowed)")
             ax.legend()
